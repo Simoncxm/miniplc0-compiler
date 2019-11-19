@@ -38,10 +38,17 @@ namespace miniplc0 {
 		// 完全可以参照 <程序> 编写
 
 		// <常量声明>
-
+        auto err = analyseConstantDeclaration();
+        if (err.has_value())
+            return err;
 		// <变量声明>
-
+        err = analyseVariableDeclaration();
+        if (err.has_value())
+            return err;
 		// <语句序列>
+        err = analyseStatementSequence();
+        if (err.has_value())
+            return err;
 		return {};
 	}
 
@@ -96,20 +103,38 @@ namespace miniplc0 {
 	// 需要补全
 	std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
 		// 变量声明语句可能有一个或者多个
-
-		// 预读？
-
-		// 'var'
-
-		// <标识符>
-
-		// 变量可能没有初始化，仍然需要一次预读
-
-		// '='
-
-		// '<表达式>'
-
-		// ';'
+        while (true) {
+            // 预读？
+            auto next = nextToken();
+            if (!next.has_value())
+                return {};
+            // 'var'
+            if (next.value().GetType() != TokenType::VAR) {
+                unreadToken();
+                return {};
+            }
+            // <标识符>
+            next = nextToken();
+            if (!next.has_value() || next.value().GetType() != TokenType::IDENTIFIER)
+                return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNeedIdentifier);
+            if (isDeclared(next.value().GetValueString()))
+                return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrDuplicateDeclaration);
+            // 变量可能没有初始化，仍然需要一次预读
+            next = nextToken();
+            // '='
+            if (!next.has_value() || next.value().GetType() != TokenType::EQUAL_SIGN) {
+                addUninitializedVariable(next.value());
+            }
+            // '<表达式>'
+            auto err = analyseExpression();
+            if (err.has_value())
+                return err;
+            // ';'
+            next = nextToken();
+            if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
+                return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNoSemicolon);
+            /*unfinished!!!*/
+        }
 		return {};
 	}
 
@@ -135,8 +160,20 @@ namespace miniplc0 {
 			switch (next.value().GetType()) {
 				// 这里需要你针对不同的预读结果来调用不同的子程序
 				// 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
-			default:
-				break;
+			    case PRINT: {
+			        err = analyseOutputStatement();
+			        if (err.has_value())
+			            return err;
+			        break;
+			    }
+			    case IDENTIFIER: {
+                    err = analyseAssignmentStatement();
+                    if (err.has_value())
+                        return err;
+			        break;
+			    }
+                default:
+                    break;
 			}
 		}
 		return {};
@@ -230,6 +267,26 @@ namespace miniplc0 {
 	// 需要补全
 	std::optional<CompilationError> Analyser::analyseItem() {
 		// 可以参考 <表达式> 实现
+		auto err = analyseFactor();
+		if (err.has_value())
+		    return err;
+		while (true) {
+		    auto next = nextToken();
+		    if (!next.has_value())
+                return {};
+		    auto type = next.value().GetType();
+		    if (type != TokenType::MULTIPLICATION_SIGN && type != TokenType::DIVISION_SIGN) {
+		        unreadToken();
+		        return {};
+		    }
+		    err = analyseFactor();
+		    if (err.has_value())
+		        return err;
+		    if (type == TokenType::MULTIPLICATION_SIGN)
+		        _instructions.emplace_back(Operation::MUL, 0);
+		    else if (type == TokenType::DIVISION_SIGN)
+		        _instructions.emplace_back(Operation::DIV, 0);
+		}
 		return {};
 	}
 
@@ -257,8 +314,17 @@ namespace miniplc0 {
 		switch (next.value().GetType()) {
 			// 这里和 <语句序列> 类似，需要根据预读结果调用不同的子程序
 			// 但是要注意 default 返回的是一个编译错误
-		default:
-			return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrIncompleteExpression);
+		    case IDENTIFIER: {
+		        break;
+		    }
+		    case UNSIGNED_INTEGER: {
+		        break;
+		    }
+		    case LEFT_BRACKET: {
+		        break;
+		    }
+            default:
+                return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrIncompleteExpression);
 		}
 
 		// 取负
