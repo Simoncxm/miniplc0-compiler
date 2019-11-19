@@ -156,11 +156,11 @@ namespace miniplc0 {
                 }
                 auto ch = current_char.value();
                 // 如果读到的字符是数字，则存储读到的字符
-				if(isdigit(ch)) {
+				if (isdigit(ch)) {
                     ss << ch;
 				}
 				// 如果读到的是字母，则存储读到的字符，并切换状态到标识符
-				else if(isalpha(ch)) {
+				else if (isalpha(ch)) {
 				    ss << ch;
 				    current_state = DFAState::IDENTIFIER_STATE;
 				}
@@ -184,23 +184,23 @@ namespace miniplc0 {
 				// 请填空：
 				// 如果当前已经读到了文件尾，则解析已经读到的字符串
 				//     如果解析结果是关键字，那么返回对应关键字的token，否则返回标识符的token
-				if(!current_char.has_value()) {
+				if (!current_char.has_value()) {
                     unreadLast();
                     std::string str;
                     ss >> str;
-                    if(str.compare("begin") == 0) {
+                    if (str.compare("begin") == 0) {
                     	return std::make_pair(std::make_optional<Token>(TokenType::BEGIN, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("end") == 0) {
+                    else if (str.compare("end") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::END, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("var") == 0) {
+                    else if (str.compare("var") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::VAR, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("const") == 0) {
+                    else if (str.compare("const") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::CONST, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("print") == 0) {
+                    else if (str.compare("print") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::PRINT, str, pos, currentPos()), std::optional<CompilationError>());
                     }
                     else {
@@ -209,26 +209,26 @@ namespace miniplc0 {
                 }
                 auto ch = current_char.value();
 				// 如果读到的是字符或字母，则存储读到的字符
-				if(isdigit(ch) || isalpha(ch)) {
+				if (isdigit(ch) || isalpha(ch)) {
                     ss << ch;
 				}
 				else {
 					unreadLast();
 					std::string str;
                     ss >> str;
-                    if(str.compare("begin") == 0) {
+                    if (str.compare("begin") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::BEGIN, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("end") == 0) {
+                    else if (str.compare("end") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::END, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("var") == 0) {
+                    else if (str.compare("var") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::VAR, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("const") == 0) {
+                    else if (str.compare("const") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::CONST, str, pos, currentPos()), std::optional<CompilationError>());
                     }
-                    else if(str.compare("print") == 0) {
+                    else if (str.compare("print") == 0) {
                         return std::make_pair(std::make_optional<Token>(TokenType::PRINT, str, pos, currentPos()), std::optional<CompilationError>());
                     }
                     else {
