@@ -181,13 +181,30 @@ namespace miniplc0 {
 	}
 
 	// <常表达式> ::= [<符号>]<无符号整数>
-	// 需要补全
+	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseConstantExpression(int32_t& out) {
 		// out 是常表达式的结果
 		// 这里你要分析常表达式并且计算结果
 		// 注意以下均为常表达式
 		// +1 -1 1
 		// 同时要注意是否溢出
+        auto next = nextToken();
+        auto prefix = 1;
+        if (!next.has_value())
+            return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrIncompleteExpression);
+        if (next.value().GetType() == TokenType::PLUS_SIGN)
+            prefix = 1;
+        else if (next.value().GetType() == TokenType::MINUS_SIGN) {
+            prefix = -1;
+        }
+        else
+            unreadToken();
+        next = nextToken();
+        if (!next.has_value())
+            return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrIncompleteExpression);
+        if (next.value().GetType() != TokenType::UNSIGNED_INTEGER)
+            return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrAssignToConstant);
+        out = std::any_cast<int32_t>(next.value().GetValue()) * prefix;
 		return {};
 	}
 
@@ -292,7 +309,7 @@ namespace miniplc0 {
 	}
 
 	// <因子> ::= [<符号>]( <标识符> | <无符号整数> | '('<表达式>')' )
-	// 需要补全
+	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseFactor() {
 		// [<符号>]
 		auto next = nextToken();
@@ -316,12 +333,30 @@ namespace miniplc0 {
 			// 这里和 <语句序列> 类似，需要根据预读结果调用不同的子程序
 			// 但是要注意 default 返回的是一个编译错误
 		    case IDENTIFIER: {
+		        auto name = next.value().GetValueString();
+		        if (!isDeclared(name))
+		            return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNotDeclared);
+		        if (isConstant(name) || isInitializedVariable(name)) {
+		            int32_t index = getIndex(name);
+		            _instructions.emplace_back(Operation::LOD, index);
+		        }
+		        else {
+		            return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNotInitialized);
+		        }
 		        break;
 		    }
 		    case UNSIGNED_INTEGER: {
+		        int32_t val = std::any_cast<int32_t>(next.value().GetValue());
+                _instructions.emplace_back(Operation::LIT, val);
 		        break;
 		    }
 		    case LEFT_BRACKET: {
+		        auto err = analyseExpression();
+		        if (err.has_value())
+		            return err;
+                auto rb = nextToken();
+                if (!rb.has_value() || rb.value().GetType() != TokenType::END)
+                    return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrIncompleteExpression);
 		        break;
 		    }
             default:
