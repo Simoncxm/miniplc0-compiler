@@ -33,7 +33,7 @@ namespace miniplc0 {
 	}
 
 	// <主过程> ::= <常量声明><变量声明><语句序列>
-	// 需要补全
+	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseMain() {
 		// 完全可以参照 <程序> 编写
 
@@ -100,7 +100,7 @@ namespace miniplc0 {
 
 	// <变量声明> ::= {<变量声明语句>}
 	// <变量声明语句> ::= 'var'<标识符>['='<表达式>]';'
-	// 需要补全
+	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
 		// 变量声明语句可能有一个或者多个
         while (true) {
@@ -133,7 +133,6 @@ namespace miniplc0 {
             next = nextToken();
             if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
                 return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNoSemicolon);
-            /*unfinished!!!*/
         }
 		return {};
 	}
@@ -143,7 +142,7 @@ namespace miniplc0 {
 	// <赋值语句> :: = <标识符>'='<表达式>';'
 	// <输出语句> :: = 'print' '(' <表达式> ')' ';'
 	// <空语句> :: = ';'
-	// 需要补全
+	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseStatementSequence() {
 		while (true) {
 			// 预读
@@ -161,12 +160,14 @@ namespace miniplc0 {
 				// 这里需要你针对不同的预读结果来调用不同的子程序
 				// 注意我们没有针对空语句单独声明一个函数，因此可以直接在这里返回
 			    case PRINT: {
+					unreadToken();
 			        err = analyseOutputStatement();
 			        if (err.has_value())
 			            return err;
 			        break;
 			    }
 			    case IDENTIFIER: {
+					unreadToken();
                     err = analyseAssignmentStatement();
                     if (err.has_value())
                         return err;
@@ -264,7 +265,7 @@ namespace miniplc0 {
 	}
 
 	// <项> :: = <因子>{ <乘法型运算符><因子> }
-	// 需要补全
+	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseItem() {
 		// 可以参考 <表达式> 实现
 		auto err = analyseFactor();
