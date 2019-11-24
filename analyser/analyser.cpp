@@ -13,7 +13,7 @@ namespace miniplc0 {
 
 	// <程序> ::= 'begin'<主过程>'end'
 	std::optional<CompilationError> Analyser::analyseProgram() {
-        std::cout << "Now in Program\n";
+        //std::cout << "Now in Program\n";
 		// 示例函数，示例如何调用子程序
 
 		// 'begin'
@@ -36,7 +36,7 @@ namespace miniplc0 {
 	// <主过程> ::= <常量声明><变量声明><语句序列>
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseMain() {
-        std::cout << "Now in Main\n";
+        //std::cout << "Now in Main\n";
 		// 完全可以参照 <程序> 编写
 
 		// <常量声明>
@@ -57,7 +57,7 @@ namespace miniplc0 {
 	// <常量声明> ::= {<常量声明语句>}
 	// <常量声明语句> ::= 'const'<标识符>'='<常表达式>';'
 	std::optional<CompilationError> Analyser::analyseConstantDeclaration() {
-        std::cout << "Now in ConstantDeclaration\n";
+        //std::cout << "Now in ConstantDeclaration\n";
 		// 示例函数，示例如何分析常量声明
 
 		// 常量声明语句可能有 0 或无数个
@@ -105,7 +105,7 @@ namespace miniplc0 {
 	// <变量声明语句> ::= 'var'<标识符>['='<表达式>]';'
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseVariableDeclaration() {
-        std::cout << "Now in VariableDeclaration\n";
+        //std::cout << "Now in VariableDeclaration\n";
 		// 变量声明语句可能有一个或者多个
         while (true) {
             // 预读？
@@ -131,7 +131,7 @@ namespace miniplc0 {
                 if (!next.has_value() || next.value().GetType() != TokenType::SEMICOLON)
                     return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNoSemicolon);
                 addUninitializedVariable(val.value());
-                return {};
+                continue;
             }
             // '<表达式>'
             auto err = analyseExpression();
@@ -154,7 +154,7 @@ namespace miniplc0 {
 	// <空语句> :: = ';'
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseStatementSequence() {
-        std::cout << "Now in StatementSequence\n";
+        //std::cout << "Now in StatementSequence\n";
 		while (true) {
 			// 预读
 			auto next = nextToken();
@@ -194,7 +194,7 @@ namespace miniplc0 {
 	// <常表达式> ::= [<符号>]<无符号整数>
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseConstantExpression(int32_t& out) {
-        std::cout << "Now in ConstantExpression\n";
+        //std::cout << "Now in ConstantExpression\n";
 		// out 是常表达式的结果
 		// 这里你要分析常表达式并且计算结果
 		// 注意以下均为常表达式
@@ -222,7 +222,7 @@ namespace miniplc0 {
 
 	// <表达式> ::= <项>{<加法型运算符><项>}
 	std::optional<CompilationError> Analyser::analyseExpression() {
-        std::cout << "Now in Expression\n";
+        //std::cout << "Now in Expression\n";
 		// <项>
 		auto err = analyseItem();
 		if (err.has_value())
@@ -257,7 +257,7 @@ namespace miniplc0 {
 	// <赋值语句> ::= <标识符>'='<表达式>';'
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseAssignmentStatement() {
-        std::cout << "Now in AssignmentStatement\n";
+        //std::cout << "Now in AssignmentStatement\n";
 		// 这里除了语法分析以外还要留意
 		// 标识符声明过吗？
 		// 标识符是常量吗？
@@ -266,6 +266,8 @@ namespace miniplc0 {
 		if (!n.has_value() || n.value().GetType() != TokenType::IDENTIFIER)
 		    return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrInvalidAssignment);
 		auto name = n.value().GetValueString();
+		if (!isDeclared(name))
+            return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrNotDeclared);
 		if (isConstant(name))
 		    return std::make_optional<CompilationError>(_current_pos, ErrorCode::ErrAssignToConstant);
 		n = nextToken();
@@ -288,7 +290,7 @@ namespace miniplc0 {
 
 	// <输出语句> ::= 'print' '(' <表达式> ')' ';'
 	std::optional<CompilationError> Analyser::analyseOutputStatement() {
-        std::cout << "Now in OutputStatement\n";
+        //std::cout << "Now in OutputStatement\n";
 		// 如果之前 <语句序列> 的实现正确，这里第一个 next 一定是 TokenType::PRINT
 		auto next = nextToken();
 
@@ -320,7 +322,7 @@ namespace miniplc0 {
 	// <项> :: = <因子>{ <乘法型运算符><因子> }
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseItem() {
-        std::cout << "Now in Item\n";
+        //std::cout << "Now in Item\n";
 		// 可以参考 <表达式> 实现
 		auto err = analyseFactor();
 		if (err.has_value())
@@ -348,7 +350,7 @@ namespace miniplc0 {
 	// <因子> ::= [<符号>]( <标识符> | <无符号整数> | '('<表达式>')' )
 	// 需要补全 $$
 	std::optional<CompilationError> Analyser::analyseFactor() {
-        std::cout << "Now in Factor\n";
+        //std::cout << "Now in Factor\n";
 		// [<符号>]
 		auto next = nextToken();
 		auto prefix = 1;
